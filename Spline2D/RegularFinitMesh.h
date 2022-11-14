@@ -65,11 +65,15 @@ public:
 	std::vector<FinElem> finitElements;
 
 	RegularFinitMesh(AxisCoordinates& AxisXCoordinates, AxisCoordinates& AxisYCoordinates);
-
+	RegularFinitMesh(std::istream& in);
+	RegularFinitMesh(std::string fileName);
+	int getFinElemNumByPoint(Coord2D point);
 private:
 	int nXCoords, nYCoords;
 	int nXFinElems, nYFinElems;
 
+	void init(AxisCoordinates& AxisXCoordinates, AxisCoordinates& AxisYCoordinates);
+	void init(std::istream& in);
 	int getGlobalVertNum(int ix, int iy);
 	void fillVertices(AxisCoordinates& AxisXCoordinates, AxisCoordinates& AxisYCoordinates);
 	void fillFinitElements(AxisCoordinates& AxisXCoordinates, AxisCoordinates& AxisYCoordinates);

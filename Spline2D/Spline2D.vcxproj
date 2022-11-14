@@ -138,6 +138,7 @@
     <ClCompile Include="Coord2D.cpp" />
     <ClCompile Include="programlog.cpp" />
     <ClCompile Include="RegularFinitMesh.cpp" />
+    <ClCompile Include="Spline2D.cpp" />
     <ClCompile Include="timeinfo.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

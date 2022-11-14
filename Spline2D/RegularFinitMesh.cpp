@@ -83,10 +83,10 @@ std::istream& AxisCoordinates::readData(std::istream& in)
 
 std::istream& AxisCoordinates::init(std::istream& in)
 {
-	std::istream& in = readData(in);
+	std::istream& in1 = readData(in);
 	getCoordsOfSeperatedAxis();
 	clearHelpVectors();
-	return in;
+	return in1;
 }
 
 std::istream& operator >> (std::istream& in, AxisCoordinates& axisCoordinates)
@@ -144,6 +144,8 @@ int AxisCoordinates::getCoordsOfSeperatedAxis()
 		coordinates[coordInd] = basicCoordinates[i + 1];
 		coordInd++;
 	}
+
+	return 0;
 }
 
 double AxisCoordinates::operator[] (int index)
@@ -190,8 +192,33 @@ int RegularFinitMesh::getGlobalVertNum(int ix, int iy)
 
 RegularFinitMesh::RegularFinitMesh(AxisCoordinates& AxisXCoordinates, AxisCoordinates& AxisYCoordinates)
 {
+	init(AxisXCoordinates, AxisYCoordinates);
+}
+
+void RegularFinitMesh::init(AxisCoordinates& AxisXCoordinates, AxisCoordinates& AxisYCoordinates)
+{
 	fillVertices(AxisXCoordinates, AxisYCoordinates);
 	fillFinitElements(AxisXCoordinates, AxisYCoordinates);
+}
+
+void RegularFinitMesh::init(std::istream& in)
+{
+	AxisCoordinates AxisXCoordinates(in, "X");
+	AxisCoordinates AxisYCoordinates(in, "Y");
+	init(AxisXCoordinates, AxisYCoordinates);
+}
+
+RegularFinitMesh::RegularFinitMesh(std::istream& in)
+{
+	init(in);
+}
+
+RegularFinitMesh::RegularFinitMesh(std::string fileName)
+{
+	std::ifstream in;
+	in.open(fileName);
+	init(in);
+	in.close();
 }
 
 void RegularFinitMesh::fillVertices(AxisCoordinates& AxisXCoordinates, AxisCoordinates& AxisYCoordinates)
@@ -238,4 +265,24 @@ void RegularFinitMesh::fillFinitElements(AxisCoordinates& AxisXCoordinates, Axis
 		indVertInCurrentYRow++;
 		indVertInNextYRow++;
 	}
+}
+
+int RegularFinitMesh::getFinElemNumByPoint(Coord2D point)
+{
+	int lastXIndex = nXFinElems;
+	int lastYIndex = nYFinElems * nXCoords;
+
+	if (point.x < vertices[0].x || point.x > vertices[lastXIndex].x)
+		return -1;
+
+	if (point.y < vertices[0].y || point.y > vertices[lastXIndex].y)
+		return -1;
+
+	int ix;
+	for (ix = 0; ix < lastXIndex && point.x > vertices[ix + 1].x; ix++);
+	
+	int iy;
+	for (iy = 0; iy < lastYIndex && point.x > vertices[iy + nXCoords].x; iy += nXCoords);
+
+	return iy * nXFinElems + ix;
 }

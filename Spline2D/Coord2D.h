@@ -115,4 +115,4 @@ struct Coord2D : InData
 		this->y = a[1];
 		return *this;
 	}
-}; #pragma once
+};
