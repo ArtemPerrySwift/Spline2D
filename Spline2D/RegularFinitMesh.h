@@ -4,6 +4,7 @@
 #include "Coord2D.h"
 
 const int QUAD_VER = 4;
+const int BASIC_FUNC_NUM = 16;
 
 struct FinElem
 {

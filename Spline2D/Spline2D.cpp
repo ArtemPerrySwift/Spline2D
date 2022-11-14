@@ -50,6 +50,11 @@ double CubeErmitBasicFunct1D::cubeErmitBasicFunct1D(double ksi, int iFunct)
 	}
 }
 
+double CubeErmitBasicFunct1D::ksi(double x, double xi, double hx)
+{
+	return (x - xi) / hx;
+}
+
 void CubeErmitBasicFunct1D::getStiffMatrix(double hKsi, double G[NUM_CUBE_ERMIT_BASIC_FUNCT_1D][NUM_CUBE_ERMIT_BASIC_FUNCT_1D])
 {
 	G[0][0] = 36/(30* hKsi);
@@ -139,7 +144,7 @@ void CubeErmitBasicFunct2D::getMassMatrix2D(double hKsi, double hNu, double M[NU
 	}
 }
 
-void CubeErmitBasicFunct2D::getSecondMatrix2D(double hKsi, double hNu, double S[NUM_CUBE_ERMIT_BASIC_FUNCT_1D][NUM_CUBE_ERMIT_BASIC_FUNCT_1D])
+void CubeErmitBasicFunct2D::getSecondMatrix2D(double hKsi, double hNu, double S[NUM_CUBE_ERMIT_BASIC_FUNCT_2D][NUM_CUBE_ERMIT_BASIC_FUNCT_2D])
 {
 	double Sksi[NUM_CUBE_ERMIT_BASIC_FUNCT_1D][NUM_CUBE_ERMIT_BASIC_FUNCT_1D];
 	double Snu[NUM_CUBE_ERMIT_BASIC_FUNCT_1D][NUM_CUBE_ERMIT_BASIC_FUNCT_1D];
@@ -163,4 +168,266 @@ void CubeErmitBasicFunct2D::getSecondMatrix2D(double hKsi, double hNu, double S[
 double CubeErmitBasicFunct2D::cubeErmitBasicFunct2D(double ksi, double nu, int iFunct)
 {
 	return cubeErmitBasicFunct1D(ksi, u(iFunct)) * cubeErmitBasicFunct1D(nu, v(iFunct));
+}
+
+void Spline2D::distrInterpFuncDataToFinElems()
+{
+	int numInterpFuncData = interpFuncData_s.size();
+	interFuncDataOfFinElem.resize(regularFinitMesh.finitElements.size());
+	for (int i = 0; i < numInterpFuncData; i++)
+	{
+		int iFinElemWithInterpFuncData = regularFinitMesh.getFinElemNumByPoint(interpFuncData_s[i].point);
+		if (iFinElemWithInterpFuncData > 0)
+			interFuncDataOfFinElem[iFinElemWithInterpFuncData].push_back(i);
+	}
+}
+
+void Spline2D::getLocalA(double A[NUM_CUBE_ERMIT_BASIC_FUNCT_2D][NUM_CUBE_ERMIT_BASIC_FUNCT_2D], int iFinElem)
+{
+	double xl, xr;
+	double yl, yr;
+	FinElem finitElement = regularFinitMesh.finitElements[iFinElem];
+	xl = regularFinitMesh.vertices[finitElement.verInd[0]].x;
+	xr = regularFinitMesh.vertices[finitElement.verInd[1]].x;
+	yl = regularFinitMesh.vertices[finitElement.verInd[0]].y;
+	yr = regularFinitMesh.vertices[finitElement.verInd[3]].y;
+	double hx = xr - xl;
+	double hy = yr - yl;
+	int iInterpFincData;
+	Coord2D interFuncDataPoint;
+	double ksi, nu;
+	for (int i = 0; i < NUM_CUBE_ERMIT_BASIC_FUNCT_2D; i++)
+	{
+		for (int j = 0; j < NUM_CUBE_ERMIT_BASIC_FUNCT_2D; j++)
+		{
+			for (int k = 0; k < interFuncDataOfFinElem[iFinElem].size(); k++)
+			{
+				iInterpFincData = interFuncDataOfFinElem[iFinElem][k];
+				interFuncDataPoint = interpFuncData_s[iInterpFincData].point;
+				ksi = cubeErmitBasicFunct2D.ksi(interFuncDataPoint.x, xl, hx);
+				nu = cubeErmitBasicFunct2D.ksi(interFuncDataPoint.y, yl, hy);
+				A[i][j] = interpFuncData_s[iInterpFincData].weightCoeff * cubeErmitBasicFunct2D.cubeErmitBasicFunct2D(ksi, nu, i) * cubeErmitBasicFunct2D.cubeErmitBasicFunct2D(ksi, nu, j);
+			}
+		}
+	}
+	
+}
+
+void Spline2D::getLocalB(double B[NUM_CUBE_ERMIT_BASIC_FUNCT_2D], int iFinElem)
+{
+	double xl, xr;
+	double yl, yr;
+	FinElem finitElement = regularFinitMesh.finitElements[iFinElem];
+	xl = regularFinitMesh.vertices[finitElement.verInd[0]].x;
+	xr = regularFinitMesh.vertices[finitElement.verInd[1]].x;
+	yl = regularFinitMesh.vertices[finitElement.verInd[0]].y;
+	yr = regularFinitMesh.vertices[finitElement.verInd[3]].y;
+	double hx = xr - xl;
+	double hy = yr - yl;
+	int iInterpFincData;
+	Coord2D interFuncDataPoint;
+	double ksi, nu;
+	for (int i = 0; i < NUM_CUBE_ERMIT_BASIC_FUNCT_2D; i++)
+	{
+		for (int k = 0; k < interFuncDataOfFinElem[iFinElem].size(); k++)
+		{
+			iInterpFincData = interFuncDataOfFinElem[iFinElem][k];
+			interFuncDataPoint = interpFuncData_s[iInterpFincData].point;
+			ksi = cubeErmitBasicFunct2D.ksi(interFuncDataPoint.x, xl, hx);
+			nu = cubeErmitBasicFunct2D.ksi(interFuncDataPoint.y, yl, hy);
+			B[i] = interpFuncData_s[iInterpFincData].weightCoeff * cubeErmitBasicFunct2D.cubeErmitBasicFunct2D(ksi, nu, i) * interpFuncData_s[iInterpFincData].funcValue;
+		}
+	}
+}
+
+void Spline2D::getLocalG(double G[NUM_CUBE_ERMIT_BASIC_FUNCT_2D][NUM_CUBE_ERMIT_BASIC_FUNCT_2D], int iFinElem)
+{
+	double xl, xr;
+	double yl, yr;
+	FinElem finitElement = regularFinitMesh.finitElements[iFinElem];
+	xl = regularFinitMesh.vertices[finitElement.verInd[0]].x;
+	xr = regularFinitMesh.vertices[finitElement.verInd[1]].x;
+	yl = regularFinitMesh.vertices[finitElement.verInd[0]].y;
+	yr = regularFinitMesh.vertices[finitElement.verInd[3]].y;
+	double hx = xr - xl;
+	double hy = yr - yl;
+	cubeErmitBasicFunct2D.getStiffMatrix2D(hx, hy, G);
+	
+}
+
+void Spline2D::getLocalS(double S[NUM_CUBE_ERMIT_BASIC_FUNCT_2D][NUM_CUBE_ERMIT_BASIC_FUNCT_2D], int iFinElem)
+{
+	double xl, xr;
+	double yl, yr;
+	FinElem finitElement = regularFinitMesh.finitElements[iFinElem];
+	xl = regularFinitMesh.vertices[finitElement.verInd[0]].x;
+	xr = regularFinitMesh.vertices[finitElement.verInd[1]].x;
+	yl = regularFinitMesh.vertices[finitElement.verInd[0]].y;
+	yr = regularFinitMesh.vertices[finitElement.verInd[3]].y;
+	double hx = xr - xl;
+	double hy = yr - yl;
+	cubeErmitBasicFunct2D.getSecondMatrix2D(hx, hy, S);
+}
+
+void Spline2D::getGlobalInd(int globalInd[NUM_CUBE_ERMIT_BASIC_FUNCT_2D], int iFinElem)
+{
+	FinElem finitElement = regularFinitMesh.finitElements[iFinElem];
+	for (int i = 0, j = 0; i < QUAD_VER; i++)
+	{
+		int curInd = 4*finitElement.verInd[i];
+		for (int k = 0; k < 4; k++, j++)
+			globalInd[j] = curInd + k;
+	}
+}
+
+void Spline2D::assembleGlobalMatrix()
+{
+	int ktr = regularFinitMesh.finitElements.size();
+	int materialInd;
+	//Material material;
+	slae.A.fillMatrix(0);
+
+	char x = -37;
+	int del = ktr / 35;
+	double localG[NUM_CUBE_ERMIT_BASIC_FUNCT_2D][NUM_CUBE_ERMIT_BASIC_FUNCT_2D];
+	double localA[NUM_CUBE_ERMIT_BASIC_FUNCT_2D][NUM_CUBE_ERMIT_BASIC_FUNCT_2D];
+	double localS[NUM_CUBE_ERMIT_BASIC_FUNCT_2D][NUM_CUBE_ERMIT_BASIC_FUNCT_2D];
+	double localB[NUM_CUBE_ERMIT_BASIC_FUNCT_2D];
+	int globalInd[NUM_CUBE_ERMIT_BASIC_FUNCT_2D];
+	//std::cout << del;
+	//std::cout << setlocale(LC_ALL, NULL) << std::endl;
+	//setlocale(LC_ALL, "C");
+	//std::cout << setlocale(LC_ALL, NULL) << std::endl;
+	//std::cout << std::endl;
+	//programlog::ProgressBar progressBar;
+	//progressBar.begin();
+	for (int i = 0; i < ktr; i++)
+	{
+		//progressBar.showProgress(double(i + 1) / ktr * 100.0);
+		int j, k;
+		//materialInd = mesh.finalElementMaterialStorage.finalElemMaterials[i];
+		//material = mesh.materialStorage.findMaterialByNum(materialInd);
+		//std::cout << "\t Построение локальной матрицы жёсткости" << std::endl;
+		//finalElemBase.buildLocalG(localG);
+		getGlobalInd(globalInd, i);
+		getLocalA(localA, i);
+		getLocalG(localG, i);
+		getLocalS(localS, i);
+		getLocalB(localB, i);
+		addLocalMatrixesToGlobalOne(localA, localG, localS, localB, globalInd);
+		/*
+		std::cout << "Local G" << std::endl;
+		double sum;
+		for (j = 0; j < 8; j++)
+		{
+			sum = 0;
+			for (k = 0; k < 8; k++)
+			{
+				sum += localG[j][k];
+				std::cout << localG[j][k] << " ";
+			}
+			std::cout << sum << std::endl;
+		}
+		*/
+		//std::cout << "\t Построение локального вектора b" << std::endl;
+		//finalElemBase.buildLocalB(localB);
+		//finalElemBase.buildLocalM(localM, 0);
+
+		/*
+		std::cout << "Local M" << std::endl;
+		for (j = 0; j < 8; j++)
+		{
+			sum = 0;
+			for (k = 0; k < 8; k++)
+			{
+				sum += localM[j][k];
+				std::cout << localM[j][k] << " ";
+			}
+			std::cout << sum << std::endl;
+		}
+		std::cout << "Local B" << std::endl;
+		for (j = 0; j < 8; j++)
+		{
+			std::cout << localB[j] << " ";
+		}
+		*/
+		//addLocalToGlobalAll(slae, localG, localM, localB, finalElemBase.globalInd);
+	}
+	//progressBar.end();
+	//std::cout << std::endl;
+	//getchar();
+}
+
+void Spline2D::addLocalMatrixesToGlobalOne(double A_local[FREE_DEG_2D][FREE_DEG_2D], double G_local[FREE_DEG_2D][FREE_DEG_2D], double S_local[FREE_DEG_2D][FREE_DEG_2D], double B_local[FREE_DEG_2D], int L[FREE_DEG_2D])
+{
+	int m, l;
+	int ind;
+	double* di = slae.A.di;
+	double* gg = slae.A.gg;
+	double* b = slae.b;
+	for (m = 0; m < FREE_DEG_2D; m++)
+	{
+		di[L[m]] += alpha*G_local[m][m] + A_local[m][m] + betta * S_local[m][m];
+		b[L[m]] += B_local[m];
+	}
+	int s, d;
+	for (m = 1; m < FREE_DEG_2D; m++)
+	{
+		for (l = 0; l < m; l++)
+		{
+			ind = slae.A.getElemIndG(L[m], L[l]);
+			gg[ind] += alpha * G_local[m][l] + A_local[m][l] + betta * S_local[m][l];
+		}
+	}
+}
+
+void Spline2D::countSpline()
+{
+	assembleGlobalMatrix();
+	q.resize(slae.A.n);
+	los.solve(slae.A, slae.b, q.data(), 1000, 1e-12);
+}
+
+double Spline2D::getSplineValue(Coord2D point)
+{
+	double xl, xr;
+	double yl, yr;
+	int iFinElem = regularFinitMesh.getFinElemNumByPoint(point);
+	if (iFinElem < 0)
+		return 0;
+
+	FinElem finitElement = regularFinitMesh.finitElements[iFinElem];
+	int globalInd[NUM_CUBE_ERMIT_BASIC_FUNCT_2D];
+	getGlobalInd(globalInd, iFinElem);
+	xl = regularFinitMesh.vertices[finitElement.verInd[0]].x;
+	xr = regularFinitMesh.vertices[finitElement.verInd[1]].x;
+	yl = regularFinitMesh.vertices[finitElement.verInd[0]].y;
+	yr = regularFinitMesh.vertices[finitElement.verInd[3]].y;
+	double hx = xr - xl;
+	double hy = yr - yl;
+	int iInterpFincData;
+	Coord2D interFuncDataPoint;
+	double ksi, nu;
+	double res = 0;
+	for (int i = 0; i < NUM_CUBE_ERMIT_BASIC_FUNCT_2D; i++)
+	{
+		ksi = cubeErmitBasicFunct2D.ksi(interFuncDataPoint.x, xl, hx);
+		nu = cubeErmitBasicFunct2D.ksi(interFuncDataPoint.y, yl, hy);
+		res += q[globalInd[i]]*interpFuncData_s[iInterpFincData].weightCoeff * cubeErmitBasicFunct2D.cubeErmitBasicFunct2D(ksi, nu, i);
+	}
+
+	return res;
+}
+
+Spline2D::Spline2D(std::string fileNameMesh, std::string fileNameFunc, std::string fileNameSpline) : regularFinitMesh(fileNameMesh)
+{
+	std::ifstream inFunc;
+	inFunc.open(fileNameFunc);
+	inFunc >> interpFuncData_s;
+	inFunc.close();
+
+	std::ifstream inSpline;
+	inSpline.open(fileNameSpline);
+	inSpline >> alpha >> betta;
+	inSpline.close();
 }
