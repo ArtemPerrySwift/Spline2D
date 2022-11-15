@@ -144,12 +144,19 @@
     <ClCompile Include="Coord2D.cpp" />
     <ClCompile Include="DataGenerator.cpp" />
     <ClCompile Include="los.cpp" />
+    <ClCompile Include="main.cpp" />
     <ClCompile Include="programlog.cpp" />
     <ClCompile Include="RegularFinitMesh.cpp" />
     <ClCompile Include="slae.cpp" />
     <ClCompile Include="sparsematrix.cpp" />
     <ClCompile Include="Spline2D.cpp" />
     <ClCompile Include="timeinfo.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="InterpFunctData.txt" />
+    <Text Include="InterpFunctMesh.txt" />
+    <Text Include="SplineMesh.txt" />
+    <Text Include="SplineParameters.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

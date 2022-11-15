@@ -80,5 +80,22 @@
     <ClCompile Include="DataGenerator.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
+    <ClCompile Include="main.cpp">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="InterpFunctData.txt">
+      <Filter>Файлы ресурсов</Filter>
+    </Text>
+    <Text Include="InterpFunctMesh.txt">
+      <Filter>Файлы ресурсов</Filter>
+    </Text>
+    <Text Include="SplineMesh.txt">
+      <Filter>Файлы ресурсов</Filter>
+    </Text>
+    <Text Include="SplineParameters.txt">
+      <Filter>Файлы ресурсов</Filter>
+    </Text>
   </ItemGroup>
 </Project>

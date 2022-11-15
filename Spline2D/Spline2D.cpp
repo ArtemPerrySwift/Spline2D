@@ -440,5 +440,5 @@ Spline2D::Spline2D(std::string fileNameMesh, std::string fileNameFunc, std::stri
 
 	inSpline.close();
 
-	countSpline()
+	countSpline();
 }
