@@ -1,8 +1,10 @@
 #include "DataGenerator.h"
+#include <cmath>
 
 double DataGenerator::getPureFunctValue(Coord2D point)
 {
-	return point.x + point.y;
+	return std::sin(point.x + point.y);
+	//return point.x + point.y;
 }
 
 double DataGenerator::getDirtFunctValue(Coord2D point, double dirtLvl)

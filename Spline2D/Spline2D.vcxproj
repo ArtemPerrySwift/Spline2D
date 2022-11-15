@@ -132,6 +132,7 @@
     <ClInclude Include="DataGenerator.h" />
     <ClInclude Include="InData.h" />
     <ClInclude Include="los.h" />
+    <ClInclude Include="OutData.h" />
     <ClInclude Include="programlog.h" />
     <ClInclude Include="RegularFinitMesh.h" />
     <ClInclude Include="slae.h" />
@@ -155,6 +156,7 @@
   <ItemGroup>
     <Text Include="InterpFunctData.txt" />
     <Text Include="InterpFunctMesh.txt" />
+    <Text Include="ToFindSolutionMesh.txt" />
     <Text Include="SplineMesh.txt" />
     <Text Include="SplineParameters.txt" />
     <Text Include="SplineValues.txt" />

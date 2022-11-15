@@ -67,7 +67,8 @@ public:
 	RegularMesh(AxisCoordinates& AxisXCoordinates, AxisCoordinates& AxisYCoordinates);
 	RegularMesh(std::istream& in);
 	RegularMesh(std::string fileName);
-
+	void writeMeshInFile(std::string fileName);
+	void writeMeshInFile(std::ostream& out);
 protected:
 	int nXCoords, nYCoords;
 	int nXFinElems, nYFinElems;

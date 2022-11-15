@@ -1,8 +1,9 @@
 #pragma once
 #include"indata.h"
+#include "OutData.h"
 #define USER_COORDS true
 
-struct Coord2D : InData
+struct Coord2D : InData, OutData
 {
 	double x;
 	double y;
@@ -34,6 +35,16 @@ struct Coord2D : InData
 	std::string getTypeDataName() override
 	{
 		return "CoordXY";
+	}
+
+	std::ostream& writeData(std::ostream& out) override
+	{
+		out << x << "\t" << y;
+		if (out.fail())
+		{
+			programlog::writeErr("Unable to write " + getTypeDataName());
+		}
+		return out;
 	}
 
 	Coord2D operator +(const Coord2D& coord2)

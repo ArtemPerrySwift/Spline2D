@@ -264,6 +264,19 @@ void RegularMesh::fillVertices(AxisCoordinates& AxisXCoordinates, AxisCoordinate
 	}
 }
 
+void RegularMesh::writeMeshInFile(std::string fileName)
+{
+	std::ofstream out;
+	out.open(fileName);
+	writeMeshInFile(out);
+	out.close();
+}
+
+void RegularMesh::writeMeshInFile(std::ostream& out)
+{
+	out << vertices;
+}
+
 void RegularFinitMesh::fillFinitElements(AxisCoordinates& AxisXCoordinates, AxisCoordinates& AxisYCoordinates)
 {
 	nXFinElems = AxisXCoordinates.count() - 1;
