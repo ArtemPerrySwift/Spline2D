@@ -1,4 +1,5 @@
 #include "Spline2D.h"
+#include "array.h"
 
 std::istream& InterpFuncData::readData(std::istream& in)
 {
@@ -10,7 +11,7 @@ std::istream& InterpFuncData::readData(std::istream& in)
 	}
 
 	if (weightCoeff < 0)
-		weightCoeff = abs(1 / funcValue);
+		weightCoeff = funcValue == 0 ? 1: abs(1 / funcValue);
 
 	return in;
 }
@@ -22,14 +23,12 @@ std::string InterpFuncData::getTypeDataName()
 
 int CubeErmitBasicFunct2D::u(int i)
 {
-	i++;
-	return 2 * ((i - 1) / 4 % 2) + ((i - 1) % 2);
+	return 2 * ((i / 4) % 2) + (i % 2);
 }
 
 int CubeErmitBasicFunct2D::v(int i)
 {
-	i++;
-	return 2 * ((i - 1) / 8) + (((i - 1) / 2 % 2));
+	return 2 * (i / 8) + (((i / 2) % 2));
 }
 
 double CubeErmitBasicFunct1D::cubeErmitBasicFunct1D(double ksi, int iFunct)
@@ -39,7 +38,7 @@ double CubeErmitBasicFunct1D::cubeErmitBasicFunct1D(double ksi, int iFunct)
 	case 0:
 		return 1 - 3 * ksi * ksi + 2 * ksi * ksi * ksi;
 	case 1:
-		return ksi - 3 * ksi * ksi + ksi * ksi * ksi;
+		return ksi - 2 * ksi * ksi + ksi * ksi * ksi;
 	case 2:
 		return 3 * ksi * ksi - 2 * ksi * ksi * ksi;
 	case 3:
@@ -59,10 +58,10 @@ void CubeErmitBasicFunct1D::getStiffMatrix(double hKsi, double G[NUM_CUBE_ERMIT_
 {
 	G[0][0] = 36/(30* hKsi);
 
-	G[0][1] = G[1][0] = 3;
-	G[1][1] = 4 * hKsi;
+	G[0][1] = G[1][0] = 3/30.0;
+	G[1][1] = 4 * hKsi/30;
 
-	G[0][2] = G[2][0] = -36 / hKsi;
+	G[0][2] = G[2][0] = -36 / (30 * hKsi);
 	G[1][2] = G[2][1] = -3.0/30;
 	G[2][2] = 36/(30.0*hKsi);
 
@@ -76,7 +75,7 @@ void CubeErmitBasicFunct1D::getMassMatrix(double hKsi, double M[NUM_CUBE_ERMIT_B
 {
 	M[0][0] = 156 * hKsi / 420;
 
-	M[0][1] = M[1][0] = 22 * hKsi* hKsi/420;
+	M[0][1] = M[1][0] = 22 * hKsi * hKsi / 420;
 	M[1][1] = 4 * hKsi* hKsi * hKsi / 420;
 
 	M[0][2] = M[2][0] = 54 * hKsi / 420;
@@ -177,7 +176,7 @@ void Spline2D::distrInterpFuncDataToFinElems()
 	for (int i = 0; i < numInterpFuncData; i++)
 	{
 		int iFinElemWithInterpFuncData = regularFinitMesh.getFinElemNumByPoint(interpFuncData_s[i].point);
-		if (iFinElemWithInterpFuncData > 0)
+		if (iFinElemWithInterpFuncData > -1)
 			interFuncDataOfFinElem[iFinElemWithInterpFuncData].push_back(i);
 	}
 }
@@ -198,16 +197,18 @@ void Spline2D::getLocalA(double A[NUM_CUBE_ERMIT_BASIC_FUNCT_2D][NUM_CUBE_ERMIT_
 	double ksi, nu;
 	for (int i = 0; i < NUM_CUBE_ERMIT_BASIC_FUNCT_2D; i++)
 	{
-		for (int j = 0; j < NUM_CUBE_ERMIT_BASIC_FUNCT_2D; j++)
+		for (int j = i; j < NUM_CUBE_ERMIT_BASIC_FUNCT_2D; j++)
 		{
+			A[i][j] = 0;
 			for (int k = 0; k < interFuncDataOfFinElem[iFinElem].size(); k++)
 			{
 				iInterpFincData = interFuncDataOfFinElem[iFinElem][k];
 				interFuncDataPoint = interpFuncData_s[iInterpFincData].point;
 				ksi = cubeErmitBasicFunct2D.ksi(interFuncDataPoint.x, xl, hx);
 				nu = cubeErmitBasicFunct2D.ksi(interFuncDataPoint.y, yl, hy);
-				A[i][j] = interpFuncData_s[iInterpFincData].weightCoeff * cubeErmitBasicFunct2D.cubeErmitBasicFunct2D(ksi, nu, i) * cubeErmitBasicFunct2D.cubeErmitBasicFunct2D(ksi, nu, j);
+				A[i][j] += interpFuncData_s[iInterpFincData].weightCoeff * cubeErmitBasicFunct2D.cubeErmitBasicFunct2D(ksi, nu, i) * cubeErmitBasicFunct2D.cubeErmitBasicFunct2D(ksi, nu, j);
 			}
+			A[j][i] = A[i][j];
 		}
 	}
 	
@@ -229,13 +230,14 @@ void Spline2D::getLocalB(double B[NUM_CUBE_ERMIT_BASIC_FUNCT_2D], int iFinElem)
 	double ksi, nu;
 	for (int i = 0; i < NUM_CUBE_ERMIT_BASIC_FUNCT_2D; i++)
 	{
+		B[i] = 0;
 		for (int k = 0; k < interFuncDataOfFinElem[iFinElem].size(); k++)
 		{
 			iInterpFincData = interFuncDataOfFinElem[iFinElem][k];
 			interFuncDataPoint = interpFuncData_s[iInterpFincData].point;
 			ksi = cubeErmitBasicFunct2D.ksi(interFuncDataPoint.x, xl, hx);
 			nu = cubeErmitBasicFunct2D.ksi(interFuncDataPoint.y, yl, hy);
-			B[i] = interpFuncData_s[iInterpFincData].weightCoeff * cubeErmitBasicFunct2D.cubeErmitBasicFunct2D(ksi, nu, i) * interpFuncData_s[iInterpFincData].funcValue;
+			B[i] += interpFuncData_s[iInterpFincData].weightCoeff * cubeErmitBasicFunct2D.cubeErmitBasicFunct2D(ksi, nu, i) * interpFuncData_s[iInterpFincData].funcValue;
 		}
 	}
 }
@@ -286,7 +288,7 @@ void Spline2D::assembleGlobalMatrix()
 	int materialInd;
 	//Material material;
 	slae.A.fillMatrix(0);
-
+	arrayspace::fill_vec(slae.b, slae.A.n, 0);
 	char x = -37;
 	int del = ktr / 35;
 	double localG[NUM_CUBE_ERMIT_BASIC_FUNCT_2D][NUM_CUBE_ERMIT_BASIC_FUNCT_2D];
@@ -383,6 +385,7 @@ void Spline2D::addLocalMatrixesToGlobalOne(double A_local[FREE_DEG_2D][FREE_DEG_
 
 void Spline2D::countSpline()
 {
+	distrInterpFuncDataToFinElems();
 	assembleGlobalMatrix();
 	q.resize(slae.A.n);
 	los.solve(slae.A, slae.b, q.data(), 1000, 1e-12);
@@ -409,11 +412,13 @@ double Spline2D::getSplineValue(Coord2D point)
 	Coord2D interFuncDataPoint;
 	double ksi, nu;
 	double res = 0;
+	double basicFuncValue;
+	ksi = cubeErmitBasicFunct2D.ksi(point.x, xl, hx);
+	nu = cubeErmitBasicFunct2D.ksi(point.y, yl, hy);
 	for (int i = 0; i < NUM_CUBE_ERMIT_BASIC_FUNCT_2D; i++)
 	{
-		ksi = cubeErmitBasicFunct2D.ksi(interFuncDataPoint.x, xl, hx);
-		nu = cubeErmitBasicFunct2D.ksi(interFuncDataPoint.y, yl, hy);
-		res += q[globalInd[i]] * cubeErmitBasicFunct2D.cubeErmitBasicFunct2D(ksi, nu, i);
+		basicFuncValue = cubeErmitBasicFunct2D.cubeErmitBasicFunct2D(ksi, nu, i);
+		res += q[globalInd[i]] * basicFuncValue;
 	}
 
 	return res;
@@ -439,6 +444,21 @@ Spline2D::Spline2D(std::string fileNameMesh, std::string fileNameFunc, std::stri
 		programlog::writeErr("Betta coefficient for spline connot be < 0");
 
 	inSpline.close();
-
+	SparseMatrixSym matrix;
+	matrix.buildPortrait(regularFinitMesh);
+	slae.init(matrix);
 	countSpline();
+}
+
+void Spline2D::writeSplineValuesInFile(std::vector<Coord2D> points, std::string fileName)
+{
+	std::ofstream out;
+	out.open(fileName);
+	int pointsNum = points.size();
+	out << pointsNum << std::endl;
+	for (int i = 0; i < pointsNum; i++)
+	{
+		out << points[i].x << "\t" << points[i].y << "\t" << getSplineValue(points[i]) << "\t" << std::endl;
+	}
+	out.close();
 }

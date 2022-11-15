@@ -47,6 +47,7 @@ class Spline2D
 public:
 	Spline2D(std::string fileNameMesh, std::string fileNameFunc, std::string fileNameSpline);
 	double getSplineValue(Coord2D point);
+	void writeSplineValuesInFile(std::vector<Coord2D> points, std::string fileName);
 private:
 	RegularFinitMesh regularFinitMesh;
 	CubeErmitBasicFunct2D cubeErmitBasicFunct2D;

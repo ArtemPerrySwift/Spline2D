@@ -45,7 +45,7 @@ std::istream& readData(std::istream& in, std::vector<DataType>& data)
 	for (int i = 0; i < nData; i++)
 	{
 		in >> buf;
-		data.push_back(buf);
+		data[i] = buf;
 		if (in.fail())
 		{
 			programlog::writeErr("Cannot read \"" + buf.getTypeDataName() + "\" element");
@@ -56,7 +56,7 @@ std::istream& readData(std::istream& in, std::vector<DataType>& data)
 }
 
 template<class DataType, typename = std::enable_if_t<std::is_base_of<InData, DataType>::value>>
-std::istream& operator >> (std::istream& in, std::vector<DataType> dataAr)
+std::istream& operator >> (std::istream& in, std::vector<DataType>& dataAr)
 {
 	return readData(in, dataAr);
 }

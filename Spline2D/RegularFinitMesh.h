@@ -4,7 +4,7 @@
 #include "Coord2D.h"
 
 const int QUAD_VER = 4;
-const int BASIC_FUNC_NUM = 16;
+const int BASIC_FUNC_NUM = QUAD_VER * QUAD_VER;
 
 struct FinElem
 {
@@ -88,6 +88,7 @@ public:
 	int getFinElemNumByPoint(Coord2D point);
 private:
 	void init(AxisCoordinates& AxisXCoordinates, AxisCoordinates& AxisYCoordinates) override;
+	void init(std::istream& in);
 	int getGlobalVertNum(int ix, int iy);
 	void fillFinitElements(AxisCoordinates& AxisXCoordinates, AxisCoordinates& AxisYCoordinates);
 };

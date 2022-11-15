@@ -97,5 +97,8 @@
     <Text Include="SplineParameters.txt">
       <Filter>Файлы ресурсов</Filter>
     </Text>
+    <Text Include="SplineValues.txt">
+      <Filter>Файлы ресурсов</Filter>
+    </Text>
   </ItemGroup>
 </Project>

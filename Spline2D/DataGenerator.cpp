@@ -2,7 +2,7 @@
 
 double DataGenerator::getPureFunctValue(Coord2D point)
 {
-	return point.x;
+	return point.x + point.y;
 }
 
 double DataGenerator::getDirtFunctValue(Coord2D point, double dirtLvl)
@@ -15,23 +15,23 @@ void DataGenerator::writePureDataInFile(std::vector<Coord2D>& points, std::strin
 	std::ofstream out;
 	out.open(fileName);
 	int pointsNum = points.size();
-	out << pointsNum;
+	out << pointsNum << std::endl;
 	for (int i = 0; i < pointsNum; i++)
 	{
-		out << points[i].x << " " << points[i].y << " " << getPureFunctValue(points[i]) << -1;
+		out << points[i].x << "\t" << points[i].y << "\t" << getPureFunctValue(points[i]) << "\t" << -1 << std::endl;
 	}
 	out.close();
 }
 
-void DataGenerator::writeDirtDataInFile(std::vector<Coord2D>& points, std::string fileName)
+void DataGenerator::writeDirtDataInFile(std::vector<Coord2D>& points, std::string fileName, double dirtLvl)
 {
 	std::ofstream out;
 	out.open(fileName);
 	int pointsNum = points.size();
-	out << pointsNum;
+	out << pointsNum << std::endl;
 	for (int i = 0; i < pointsNum; i++)
 	{
-		out << points[i].x << " " << points[i].y << " " << getDirtFunctValue(points[i]) << -1;
+		out << points[i].x << "\t" << points[i].y << "\t" << getDirtFunctValue(points[i], dirtLvl) << "\t" << -1 << std::endl;
 	}
 	out.close();
 }

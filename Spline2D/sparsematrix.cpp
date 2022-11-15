@@ -404,15 +404,15 @@ namespace matrix
 		map = new set<int>[kuzlov];
 		
 		n = kuzlov;
-		int indexes[QUAD_VER];
+		int indexes[BASIC_FUNC_NUM];
 
 		int i, j, k, l;
 		for (k = 0; k < ktr; k++)
 		{
-			for (int i = 0, j = 0; i < QUAD_VER; i++)
+			for (int i = 0, l = 0, j = 0; i < QUAD_VER; i++)
 			{
 				int curInd = 4 * regularFinitMesh.finitElements[k].verInd[i];
-				for (int k = 0; k < 4; k++, j++)
+				for (int k = 0; k < 4; k++, j++, l++)
 					indexes[l] = curInd + k;
 			}
 			/*

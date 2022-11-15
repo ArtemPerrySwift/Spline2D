@@ -1,0 +1,6 @@
+Tue Nov 15 11:07:20 2022
+ [Error] - Number of coordinates of X axis cannot be < 2
+Tue Nov 15 11:08:34 2022
+ [Error] - Error of 1 coordinate of X axis : Next coordinate cannot be less then previous one
+Tue Nov 15 14:00:44 2022
+ [Error] - The number of cube basic function should be in [0, 4]
