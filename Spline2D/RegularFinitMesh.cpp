@@ -185,35 +185,15 @@ std::string MeshInData::getTypeDataName()
 }
 */
 
-int RegularFinitMesh::getGlobalVertNum(int ix, int iy)
-{
-	return nXCoords * iy + ix;
-}
-
-RegularFinitMesh::RegularFinitMesh(AxisCoordinates& AxisXCoordinates, AxisCoordinates& AxisYCoordinates)
+RegularMesh::RegularMesh(AxisCoordinates& AxisXCoordinates, AxisCoordinates& AxisYCoordinates)
 {
 	init(AxisXCoordinates, AxisYCoordinates);
 }
-
-void RegularFinitMesh::init(AxisCoordinates& AxisXCoordinates, AxisCoordinates& AxisYCoordinates)
-{
-	fillVertices(AxisXCoordinates, AxisYCoordinates);
-	fillFinitElements(AxisXCoordinates, AxisYCoordinates);
-}
-
-void RegularFinitMesh::init(std::istream& in)
-{
-	AxisCoordinates AxisXCoordinates(in, "X");
-	AxisCoordinates AxisYCoordinates(in, "Y");
-	init(AxisXCoordinates, AxisYCoordinates);
-}
-
-RegularFinitMesh::RegularFinitMesh(std::istream& in)
+RegularMesh::RegularMesh(std::istream& in)
 {
 	init(in);
 }
-
-RegularFinitMesh::RegularFinitMesh(std::string fileName)
+RegularMesh::RegularMesh(std::string fileName)
 {
 	std::ifstream in;
 	in.open(fileName);
@@ -221,7 +201,36 @@ RegularFinitMesh::RegularFinitMesh(std::string fileName)
 	in.close();
 }
 
-void RegularFinitMesh::fillVertices(AxisCoordinates& AxisXCoordinates, AxisCoordinates& AxisYCoordinates)
+void RegularMesh::init(AxisCoordinates& AxisXCoordinates, AxisCoordinates& AxisYCoordinates)
+{
+	fillVertices(AxisXCoordinates, AxisYCoordinates);
+}
+
+void RegularMesh::init(std::istream& in)
+{
+	AxisCoordinates AxisXCoordinates(in, "X");
+	AxisCoordinates AxisYCoordinates(in, "Y");
+	init(AxisXCoordinates, AxisYCoordinates);
+}
+
+int RegularFinitMesh::getGlobalVertNum(int ix, int iy)
+{
+	return nXCoords * iy + ix;
+}
+
+RegularFinitMesh::RegularFinitMesh(AxisCoordinates& AxisXCoordinates, AxisCoordinates& AxisYCoordinates) : RegularMesh(AxisXCoordinates, AxisYCoordinates) {}
+
+void RegularFinitMesh::init(AxisCoordinates& AxisXCoordinates, AxisCoordinates& AxisYCoordinates)
+{
+	RegularMesh::init(AxisXCoordinates, AxisYCoordinates);
+	fillFinitElements(AxisXCoordinates, AxisYCoordinates);
+}
+
+RegularFinitMesh::RegularFinitMesh(std::istream& in) : RegularMesh(in){}
+
+RegularFinitMesh::RegularFinitMesh(std::string fileName) : RegularMesh(fileName){}
+
+void RegularMesh::fillVertices(AxisCoordinates& AxisXCoordinates, AxisCoordinates& AxisYCoordinates)
 {
 	nXCoords = AxisXCoordinates.count();
 	nYCoords = AxisYCoordinates.count();

@@ -413,7 +413,7 @@ double Spline2D::getSplineValue(Coord2D point)
 	{
 		ksi = cubeErmitBasicFunct2D.ksi(interFuncDataPoint.x, xl, hx);
 		nu = cubeErmitBasicFunct2D.ksi(interFuncDataPoint.y, yl, hy);
-		res += q[globalInd[i]]*interpFuncData_s[iInterpFincData].weightCoeff * cubeErmitBasicFunct2D.cubeErmitBasicFunct2D(ksi, nu, i);
+		res += q[globalInd[i]] * cubeErmitBasicFunct2D.cubeErmitBasicFunct2D(ksi, nu, i);
 	}
 
 	return res;
@@ -429,5 +429,16 @@ Spline2D::Spline2D(std::string fileNameMesh, std::string fileNameFunc, std::stri
 	std::ifstream inSpline;
 	inSpline.open(fileNameSpline);
 	inSpline >> alpha >> betta;
+	if (inSpline.fail())
+		programlog::writeErr("Unable to read alpha and betta coefficients for spline");
+	
+	if(alpha < 0)
+		programlog::writeErr("Alpha coefficient for spline connot be < 0");
+
+	if (betta < 0)
+		programlog::writeErr("Betta coefficient for spline connot be < 0");
+
 	inSpline.close();
+
+	countSpline()
 }

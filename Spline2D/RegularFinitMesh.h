@@ -59,10 +59,27 @@ public:
 
 };
 */
-struct RegularFinitMesh
+
+struct RegularMesh
 {
 public:
 	std::vector<Coord2D> vertices;
+	RegularMesh(AxisCoordinates& AxisXCoordinates, AxisCoordinates& AxisYCoordinates);
+	RegularMesh(std::istream& in);
+	RegularMesh(std::string fileName);
+
+protected:
+	int nXCoords, nYCoords;
+	int nXFinElems, nYFinElems;
+
+	virtual void init(AxisCoordinates& AxisXCoordinates, AxisCoordinates& AxisYCoordinates);
+	void init(std::istream& in);
+	void fillVertices(AxisCoordinates& AxisXCoordinates, AxisCoordinates& AxisYCoordinates);
+};
+
+struct RegularFinitMesh : RegularMesh
+{
+public:
 	std::vector<FinElem> finitElements;
 
 	RegularFinitMesh(AxisCoordinates& AxisXCoordinates, AxisCoordinates& AxisYCoordinates);
@@ -70,12 +87,7 @@ public:
 	RegularFinitMesh(std::string fileName);
 	int getFinElemNumByPoint(Coord2D point);
 private:
-	int nXCoords, nYCoords;
-	int nXFinElems, nYFinElems;
-
-	void init(AxisCoordinates& AxisXCoordinates, AxisCoordinates& AxisYCoordinates);
-	void init(std::istream& in);
+	void init(AxisCoordinates& AxisXCoordinates, AxisCoordinates& AxisYCoordinates) override;
 	int getGlobalVertNum(int ix, int iy);
-	void fillVertices(AxisCoordinates& AxisXCoordinates, AxisCoordinates& AxisYCoordinates);
 	void fillFinitElements(AxisCoordinates& AxisXCoordinates, AxisCoordinates& AxisYCoordinates);
 };

@@ -129,6 +129,7 @@
   <ItemGroup>
     <ClInclude Include="array.h" />
     <ClInclude Include="Coord2D.h" />
+    <ClInclude Include="DataGenerator.h" />
     <ClInclude Include="InData.h" />
     <ClInclude Include="los.h" />
     <ClInclude Include="programlog.h" />
@@ -141,6 +142,7 @@
   <ItemGroup>
     <ClCompile Include="array.cpp" />
     <ClCompile Include="Coord2D.cpp" />
+    <ClCompile Include="DataGenerator.cpp" />
     <ClCompile Include="los.cpp" />
     <ClCompile Include="programlog.cpp" />
     <ClCompile Include="RegularFinitMesh.cpp" />
