@@ -426,28 +426,51 @@ double Spline2D::getSplineValue(Coord2D point)
 
 Spline2D::Spline2D(std::string fileNameMesh, std::string fileNameFunc, std::string fileNameSpline) : regularFinitMesh(fileNameMesh)
 {
-	std::ifstream inFunc;
-	inFunc.open(fileNameFunc);
-	inFunc >> interpFuncData_s;
-	inFunc.close();
+	readInterpFuncData(fileNameFunc);
+	readSplineParams(fileNameSpline);
+	
+	slaeInit();
+	countSpline();
+}
 
+Spline2D::Spline2D(std::string fileNameMesh, std::string fileNameSpline, std::vector<InterpFuncData> interpFuncData_s) : regularFinitMesh(fileNameMesh)
+{
+	readSplineParams(fileNameSpline);
+	this->interpFuncData_s = interpFuncData_s;
+	slaeInit();
+	countSpline();
+}
+
+void Spline2D::slaeInit()
+{
+	SparseMatrixSym matrix;
+	matrix.buildPortrait(regularFinitMesh);
+	slae.init(matrix);
+}
+void Spline2D::readSplineParams(std::string fileNameSpline)
+{
 	std::ifstream inSpline;
 	inSpline.open(fileNameSpline);
 	inSpline >> alpha >> betta;
 	if (inSpline.fail())
 		programlog::writeErr("Unable to read alpha and betta coefficients for spline");
-	
-	if(alpha < 0)
+
+	if (alpha < 0)
 		programlog::writeErr("Alpha coefficient for spline connot be < 0");
 
 	if (betta < 0)
 		programlog::writeErr("Betta coefficient for spline connot be < 0");
 
 	inSpline.close();
-	SparseMatrixSym matrix;
-	matrix.buildPortrait(regularFinitMesh);
-	slae.init(matrix);
-	countSpline();
+}
+
+
+void Spline2D::readInterpFuncData(std::string fileNameFunc)
+{
+	std::ifstream inFunc;
+	inFunc.open(fileNameFunc);
+	inFunc >> interpFuncData_s;
+	inFunc.close();
 }
 
 void Spline2D::writeSplineValuesInFile(std::vector<Coord2D> points, std::string fileName)
@@ -461,4 +484,29 @@ void Spline2D::writeSplineValuesInFile(std::vector<Coord2D> points, std::string 
 		out << points[i].x << "\t" << points[i].y << "\t" << getSplineValue(points[i]) << "\t" << std::endl;
 	}
 	out.close();
+}
+
+std::vector<InterpFuncData> Spline2D::getInterpFunctData()
+{
+	return interpFuncData_s;
+}
+
+void Spline2D::privChangeFuncWeightValue(WeightToChange weightToChange)
+{
+	if (weightToChange.indWeight >= interpFuncData_s.size())
+		programlog::writeErr("Index of weight to change is not valid");
+
+	interpFuncData_s[weightToChange.indWeight].weightCoeff = weightToChange.newWeightValue;
+}
+
+void Spline2D::changeFuncWeightValue(WeightToChange weightToChange)
+{
+	privChangeFuncWeightValue(weightToChange);
+	countSpline();
+}
+
+void Spline2D::changeFuncWeightValues(std::vector<WeightToChange>& weightsToChange)
+{
+	for (int i = 0; i < weightsToChange.size(); i++)
+		privChangeFuncWeightValue(weightsToChange[i]);
 }

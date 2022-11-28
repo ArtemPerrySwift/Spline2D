@@ -130,6 +130,7 @@
     <ClInclude Include="array.h" />
     <ClInclude Include="Coord2D.h" />
     <ClInclude Include="DataGenerator.h" />
+    <ClInclude Include="Filtr.h" />
     <ClInclude Include="InData.h" />
     <ClInclude Include="los.h" />
     <ClInclude Include="OutData.h" />
@@ -144,6 +145,7 @@
     <ClCompile Include="array.cpp" />
     <ClCompile Include="Coord2D.cpp" />
     <ClCompile Include="DataGenerator.cpp" />
+    <ClCompile Include="Filtr.cpp" />
     <ClCompile Include="los.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="programlog.cpp" />

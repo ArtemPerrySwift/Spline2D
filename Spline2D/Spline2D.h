@@ -19,6 +19,12 @@ struct InterpFuncData : InData
 	virtual std::string getTypeDataName() override;
 };
 
+struct WeightToChange
+{
+	unsigned int indWeight;
+	double newWeightValue;
+};
+
 class CubeErmitBasicFunct1D
 {
 public:
@@ -46,8 +52,12 @@ class Spline2D
 {
 public:
 	Spline2D(std::string fileNameMesh, std::string fileNameFunc, std::string fileNameSpline);
+	Spline2D(std::string fileNameMesh, std::string fileNameSpline, std::vector<InterpFuncData> interpFuncData_s);
 	double getSplineValue(Coord2D point);
 	void writeSplineValuesInFile(std::vector<Coord2D> points, std::string fileName);
+	std::vector<InterpFuncData> getInterpFunctData();
+	void changeFuncWeightValue(WeightToChange weightToChange);
+	void changeFuncWeightValues(std::vector<WeightToChange>& weightsToChange);
 private:
 	RegularFinitMesh regularFinitMesh;
 	CubeErmitBasicFunct2D cubeErmitBasicFunct2D;
@@ -67,4 +77,8 @@ private:
 	void addLocalMatrixesToGlobalOne(double A_local[FREE_DEG_2D][FREE_DEG_2D], double G_local[FREE_DEG_2D][FREE_DEG_2D], double S_local[FREE_DEG_2D][FREE_DEG_2D], double B_local[FREE_DEG_2D], int L[FREE_DEG_2D]);
 	void assembleGlobalMatrix();
 	void countSpline();
+	void readInterpFuncData(std::string fileNameFunc);
+	void readSplineParams(std::string fileNameSpline);
+	void slaeInit();
+	void privChangeFuncWeightValue(WeightToChange weightToChange);
 };

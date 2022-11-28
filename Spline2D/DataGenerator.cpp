@@ -9,7 +9,7 @@ double DataGenerator::getPureFunctValue(Coord2D point)
 
 double DataGenerator::getDirtFunctValue(Coord2D point, double dirtLvl)
 {
-	return getPureFunctValue(point) * (1 + rand()/RAND_MAX*dirtLvl);
+	return getPureFunctValue(point) * (1 + (-1 + 2*rand()/RAND_MAX)*dirtLvl);
 }
 
 void DataGenerator::writePureDataInFile(std::vector<Coord2D>& points, std::string fileName)
