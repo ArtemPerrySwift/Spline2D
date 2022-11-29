@@ -158,6 +158,7 @@
   <ItemGroup>
     <Text Include="InterpFunctData.txt" />
     <Text Include="InterpFunctMesh.txt" />
+    <Text Include="SplineDifValues.txt" />
     <Text Include="ToFindSolutionMesh.txt" />
     <Text Include="SplineMesh.txt" />
     <Text Include="SplineParameters.txt" />

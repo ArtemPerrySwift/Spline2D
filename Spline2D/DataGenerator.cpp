@@ -3,8 +3,9 @@
 
 double DataGenerator::getPureFunctValue(Coord2D point)
 {
-	return std::sin(point.x + point.y);
+	//return std::sin(point.x + point.y);
 	//return point.x + point.y;
+	return std::pow(point.x, 3) + std::pow(point.y, 3);
 }
 
 double DataGenerator::getDirtFunctValue(Coord2D point, double dirtLvl)
@@ -18,6 +19,7 @@ void DataGenerator::writePureDataInFile(std::vector<Coord2D>& points, std::strin
 	out.open(fileName);
 	int pointsNum = points.size();
 	out << pointsNum << std::endl;
+	out.precision(12);
 	for (int i = 0; i < pointsNum; i++)
 	{
 		out << points[i].x << "\t" << points[i].y << "\t" << getPureFunctValue(points[i]) << "\t" << -1 << std::endl;

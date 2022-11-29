@@ -9,7 +9,8 @@ int main()
 	Spline2D spline("SplineMesh.txt", "InterpFunctData.txt", "SplineParameters.txt");
 
 	RegularMesh regularSolutionToFindMesh("ToFindSolutionMesh.txt");
-	spline.writeSplineValuesInFile(regularDataGeneratorMesh.vertices, "SplineValues.txt");
+	spline.writeSplineValuesInFile(regularSolutionToFindMesh.vertices, "SplineValues.txt");
+	spline.writeDifSplineValuesInFile(regularSolutionToFindMesh.vertices, "SplineDifValues.txt");
 
 	return 0;
 }

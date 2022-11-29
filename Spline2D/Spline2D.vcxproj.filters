@@ -112,5 +112,8 @@
     <Text Include="ToFindSolutionMesh.txt">
       <Filter>Файлы ресурсов</Filter>
     </Text>
+    <Text Include="SplineDifValues.txt">
+      <Filter>Файлы ресурсов</Filter>
+    </Text>
   </ItemGroup>
 </Project>

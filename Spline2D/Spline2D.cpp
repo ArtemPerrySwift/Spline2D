@@ -49,6 +49,24 @@ double CubeErmitBasicFunct1D::cubeErmitBasicFunct1D(double ksi, int iFunct)
 	}
 }
 
+double CubeErmitBasicFunct1D::cubeErmitBasicDifFunct1D(double ksi, int iFunct)
+{
+	switch (iFunct)
+	{
+	case 0:
+		return 6 * (-ksi +  ksi * ksi);
+	case 1:
+		return 1 - 4 * ksi + 3 * ksi * ksi;
+	case 2:
+		return 6 * (ksi -  ksi * ksi);
+	case 3:
+		return - 2 * ksi + 3 * ksi * ksi;
+	default:
+		programlog::writeErr("The number of cube basic function should be in [0, 4]");
+		return 0;
+	}
+}
+
 double CubeErmitBasicFunct1D::ksi(double x, double xi, double hx)
 {
 	return (x - xi) / hx;
@@ -169,6 +187,16 @@ double CubeErmitBasicFunct2D::cubeErmitBasicFunct2D(double ksi, double nu, int i
 	return cubeErmitBasicFunct1D(ksi, u(iFunct)) * cubeErmitBasicFunct1D(nu, v(iFunct));
 }
 
+double CubeErmitBasicFunct2D::cubeErmitBasicDifKsiFunct2D(double ksi, double nu, int iFunct)
+{
+	return cubeErmitBasicDifFunct1D(ksi, u(iFunct)) * cubeErmitBasicFunct1D(nu, v(iFunct));
+}
+
+double CubeErmitBasicFunct2D::cubeErmitBasicDifNuFunct2D(double ksi, double nu, int iFunct)
+{
+	return cubeErmitBasicFunct1D(ksi, u(iFunct)) * cubeErmitBasicDifFunct1D(nu, v(iFunct));
+}
+
 void Spline2D::distrInterpFuncDataToFinElems()
 {
 	int numInterpFuncData = interpFuncData_s.size();
@@ -195,6 +223,8 @@ void Spline2D::getLocalA(double A[NUM_CUBE_ERMIT_BASIC_FUNCT_2D][NUM_CUBE_ERMIT_
 	int iInterpFincData;
 	Coord2D interFuncDataPoint;
 	double ksi, nu;
+	double iBasicFuncValue;
+	double jBasicFuncValue;
 	for (int i = 0; i < NUM_CUBE_ERMIT_BASIC_FUNCT_2D; i++)
 	{
 		for (int j = i; j < NUM_CUBE_ERMIT_BASIC_FUNCT_2D; j++)
@@ -206,7 +236,11 @@ void Spline2D::getLocalA(double A[NUM_CUBE_ERMIT_BASIC_FUNCT_2D][NUM_CUBE_ERMIT_
 				interFuncDataPoint = interpFuncData_s[iInterpFincData].point;
 				ksi = cubeErmitBasicFunct2D.ksi(interFuncDataPoint.x, xl, hx);
 				nu = cubeErmitBasicFunct2D.ksi(interFuncDataPoint.y, yl, hy);
-				A[i][j] += interpFuncData_s[iInterpFincData].weightCoeff * cubeErmitBasicFunct2D.cubeErmitBasicFunct2D(ksi, nu, i) * cubeErmitBasicFunct2D.cubeErmitBasicFunct2D(ksi, nu, j);
+				iBasicFuncValue = cubeErmitBasicFunct2D.cubeErmitBasicFunct2D(ksi, nu, i);
+				jBasicFuncValue = cubeErmitBasicFunct2D.cubeErmitBasicFunct2D(ksi, nu, j);
+
+
+				A[i][j] += interpFuncData_s[iInterpFincData].weightCoeff * iBasicFuncValue * jBasicFuncValue;
 			}
 			A[j][i] = A[i][j];
 		}
@@ -395,29 +429,116 @@ double Spline2D::getSplineValue(Coord2D point)
 {
 	double xl, xr;
 	double yl, yr;
+
 	int iFinElem = regularFinitMesh.getFinElemNumByPoint(point);
+
 	if (iFinElem < 0)
 		return 0;
 
 	FinElem finitElement = regularFinitMesh.finitElements[iFinElem];
 	int globalInd[NUM_CUBE_ERMIT_BASIC_FUNCT_2D];
 	getGlobalInd(globalInd, iFinElem);
+
 	xl = regularFinitMesh.vertices[finitElement.verInd[0]].x;
 	xr = regularFinitMesh.vertices[finitElement.verInd[1]].x;
 	yl = regularFinitMesh.vertices[finitElement.verInd[0]].y;
 	yr = regularFinitMesh.vertices[finitElement.verInd[3]].y;
+
 	double hx = xr - xl;
 	double hy = yr - yl;
+
 	int iInterpFincData;
 	Coord2D interFuncDataPoint;
 	double ksi, nu;
 	double res = 0;
 	double basicFuncValue;
+
 	ksi = cubeErmitBasicFunct2D.ksi(point.x, xl, hx);
 	nu = cubeErmitBasicFunct2D.ksi(point.y, yl, hy);
+
 	for (int i = 0; i < NUM_CUBE_ERMIT_BASIC_FUNCT_2D; i++)
 	{
 		basicFuncValue = cubeErmitBasicFunct2D.cubeErmitBasicFunct2D(ksi, nu, i);
+		res += q[globalInd[i]] * basicFuncValue;
+	}
+
+	return res;
+}
+
+double Spline2D::getDifXSplineValue(Coord2D point)
+{
+	double xl, xr;
+	double yl, yr;
+
+	int iFinElem = regularFinitMesh.getFinElemNumByPoint(point);
+
+	if (iFinElem < 0)
+		return 0;
+
+	FinElem finitElement = regularFinitMesh.finitElements[iFinElem];
+	int globalInd[NUM_CUBE_ERMIT_BASIC_FUNCT_2D];
+	getGlobalInd(globalInd, iFinElem);
+
+	xl = regularFinitMesh.vertices[finitElement.verInd[0]].x;
+	xr = regularFinitMesh.vertices[finitElement.verInd[1]].x;
+	yl = regularFinitMesh.vertices[finitElement.verInd[0]].y;
+	yr = regularFinitMesh.vertices[finitElement.verInd[3]].y;
+
+	double hx = xr - xl;
+	double hy = yr - yl;
+
+	int iInterpFincData;
+	Coord2D interFuncDataPoint;
+	double ksi, nu;
+	double res = 0;
+	double basicFuncValue;
+
+	ksi = cubeErmitBasicFunct2D.ksi(point.x, xl, hx);
+	nu = cubeErmitBasicFunct2D.ksi(point.y, yl, hy);
+
+	for (int i = 0; i < NUM_CUBE_ERMIT_BASIC_FUNCT_2D; i++)
+	{
+		basicFuncValue = ( i / 2 ) % 2 == 0 ? cubeErmitBasicFunct2D.cubeErmitBasicDifKsiFunct2D(ksi, nu, i)/hx : cubeErmitBasicFunct2D.cubeErmitBasicDifKsiFunct2D(ksi, nu, i);
+		res += q[globalInd[i]] * basicFuncValue;
+	}
+
+	return res;
+}
+
+double Spline2D::getDifYSplineValue(Coord2D point)
+{
+	double xl, xr;
+	double yl, yr;
+
+	int iFinElem = regularFinitMesh.getFinElemNumByPoint(point);
+
+	if (iFinElem < 0)
+		return 0;
+
+	FinElem finitElement = regularFinitMesh.finitElements[iFinElem];
+	int globalInd[NUM_CUBE_ERMIT_BASIC_FUNCT_2D];
+	getGlobalInd(globalInd, iFinElem);
+
+	xl = regularFinitMesh.vertices[finitElement.verInd[0]].x;
+	xr = regularFinitMesh.vertices[finitElement.verInd[1]].x;
+	yl = regularFinitMesh.vertices[finitElement.verInd[0]].y;
+	yr = regularFinitMesh.vertices[finitElement.verInd[3]].y;
+
+	double hx = xr - xl;
+	double hy = yr - yl;
+
+	int iInterpFincData;
+	Coord2D interFuncDataPoint;
+	double ksi, nu;
+	double res = 0;
+	double basicFuncValue;
+
+	ksi = cubeErmitBasicFunct2D.ksi(point.x, xl, hx);
+	nu = cubeErmitBasicFunct2D.ksi(point.y, yl, hy);
+
+	for (int i = 0; i < NUM_CUBE_ERMIT_BASIC_FUNCT_2D; i++)
+	{
+		basicFuncValue = i % 2 == 0 ? cubeErmitBasicFunct2D.cubeErmitBasicDifNuFunct2D(ksi, nu, i) / hy : cubeErmitBasicFunct2D.cubeErmitBasicDifNuFunct2D(ksi, nu, i);
 		res += q[globalInd[i]] * basicFuncValue;
 	}
 
@@ -479,12 +600,28 @@ void Spline2D::writeSplineValuesInFile(std::vector<Coord2D> points, std::string 
 	out.open(fileName);
 	int pointsNum = points.size();
 	out << pointsNum << std::endl;
+	out.precision(12);
 	for (int i = 0; i < pointsNum; i++)
 	{
 		out << points[i].x << "\t" << points[i].y << "\t" << getSplineValue(points[i]) << "\t" << std::endl;
 	}
 	out.close();
 }
+
+void Spline2D::writeDifSplineValuesInFile(std::vector<Coord2D> points, std::string fileName)
+{
+	std::ofstream out;
+	out.open(fileName);
+	int pointsNum = points.size();
+	out << pointsNum << std::endl;
+	out.precision(12);
+	for (int i = 0; i < pointsNum; i++)
+	{
+		out << points[i].x << "\t" << points[i].y << "\t" << getDifXSplineValue(points[i]) << "\t" << getDifYSplineValue(points[i]) << "\t" << std::endl;
+	}
+	out.close();
+}
+
 
 std::vector<InterpFuncData> Spline2D::getInterpFunctData()
 {
